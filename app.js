@@ -7,6 +7,8 @@ const cors = require("cors");
 const indexRouter = require("./index");
 const usersRouter = require("./routes/users");
 const flashcards = require("./routes/flashcards");
+const jwt = require("jsonwebtoken");
+
 const app = express();
 
 const corsOptions = {
@@ -21,6 +23,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+const userVerify = (req, res, next) => {
+  try {
+    if (req.cookies.token) {
+      req.user = jwt.verify(req.cookies.token, process.env.JWT_SECRET_KEY);
+    }
+    next();
+  } catch (_err) {
+    // just ignore error
+    next();
+  }
+};
+app.use(userVerify);
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);

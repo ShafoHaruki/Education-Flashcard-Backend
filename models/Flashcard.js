@@ -1,11 +1,6 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    required: true,
-    index: true
-  },
   character: {
     type: String,
     required: true,
@@ -30,7 +25,8 @@ const userSchema = new mongoose.Schema({
     exampleChineseSentence: { type: String, required: true, index: true },
     exampleChinesePinyin: { type: String, required: true, index: true },
     exampleEnglishTranslation: { type: String, required: true, index: true }
-  }
+  },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
 });
 
 const Flashcard = mongoose.model("Flashcard", userSchema);

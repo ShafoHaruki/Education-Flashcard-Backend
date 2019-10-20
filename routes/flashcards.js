@@ -1,10 +1,21 @@
 var express = require("express");
 var router = express.Router();
 const Flashcard = require("../models/Flashcard");
+const jwt = require("jsonwebtoken");
+
+const protectedRoute = (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new Error("Go away!");
+    }
+    next();
+  } catch (err) {
+    res.status(401).end("You are not authorised ");
+  }
+};
 
 router.get("/", async function(req, res, next) {
   try {
-    const userCreatedFlashcards = await Flashcard.find();
     const preloadedFlashcards = [
       {
         id: 1,
@@ -369,18 +380,26 @@ router.get("/", async function(req, res, next) {
       }
     ];
 
-    // res.send(userCreatedFlashcards);
-    res.send(preloadedFlashcards);
-    // res.send({ userCreatedFlashcards, preloadedFlashcards });
+    if (!req.user) {
+      res.send(preloadedFlashcards);
+    } else {
+      const userCreatedFlashcards = await Flashcard.find({
+        user: req.user.id
+      });
+      res.send(userCreatedFlashcards);
+    }
   } catch (err) {
     next(err);
   }
 });
 
-router.post("/new", async (req, res, next) => {
+router.post("/new", protectedRoute, async (req, res, next) => {
   try {
     const flashcard = new Flashcard(req.body);
     await Flashcard.init();
+    // assign user to the flashcard
+    const userID = req.user.id;
+    flashcard.user = userID;
     const newFlashcard = await flashcard.save();
     res.send(newFlashcard);
   } catch (err) {
@@ -388,18 +407,6 @@ router.post("/new", async (req, res, next) => {
   }
 });
 
-// router.delete("/:id", async (req, res, next) => {
-//   try {
-//     const id = req.params.id;
-//     await Flashcard.findByIdAndDelete(id);
-//     res.send();
-//   } catch (err) {
-//     res.status(500).end("Not authorised to delete!!!");
-//     // next(err);
-//   }
-// });
-
-//Using axios, to delete from a list of flashcards in MongoDB
 router.delete("/:id", async (req, res, next) => {
   try {
     const id = req.params.id;
@@ -410,6 +417,5 @@ router.delete("/:id", async (req, res, next) => {
     // next(err);
   }
 });
-
 
 module.exports = router;

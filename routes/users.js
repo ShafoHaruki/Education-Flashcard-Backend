@@ -5,6 +5,8 @@ const cookieParser = require("cookie-parser");
 router.use(cookieParser());
 router.use(express.json());
 const jwt = require("jsonwebtoken");
+const flashCards = require("../preloadedData");
+const Flashcard = require("../models/Flashcard");
 
 router.get("/all", async (req, res, next) => {
   try {
@@ -13,10 +15,6 @@ router.get("/all", async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-});
-
-router.post("/", function(req, res, next) {
-  res.send("Respond with a resource");
 });
 
 router.post("/login", async function(req, res, next) {
@@ -30,7 +28,10 @@ router.post("/login", async function(req, res, next) {
       throw new Error("Login failed, no such Username or Password is wrong");
     }
 
-    const token = jwt.sign({ name: user.username }, process.env.JWT_SECRET_KEY);
+    const token = jwt.sign(
+      { name: user.username, id: user._id },
+      process.env.JWT_SECRET_KEY
+    );
 
     res.cookie("token", token);
     res.json({ username: username });
@@ -51,8 +52,19 @@ router.post("/signup", async (req, res, next) => {
     const user = new User(req.body);
     console.log(req.body);
     const newUser = await user.save();
-    res.send(newUser);
+    const newFlashCards = flashCards.map(v => {
+      return { ...v, user: newUser._id };
+    });
+    //Create new data on database
+    Flashcard.insertMany(newFlashCards, (err, docs) => {
+      if (err) {
+        res.status(500).end("Failed to create new card list for user");
+      } else {
+        res.send(newUser);
+      }
+    });
   } catch (err) {
+    console.error(err);
     res.status(500).end("You are not authorised");
   }
 });
