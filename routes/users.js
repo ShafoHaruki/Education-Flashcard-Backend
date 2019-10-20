@@ -56,7 +56,7 @@ router.post("/signup", async (req, res, next) => {
       return { ...v, user: newUser._id };
     });
     //Create new data on database
-    Flashcard.insertMany(newFlashCards, (err, docs) => {
+    Flashcard.insertMany(newFlashCards, err => {
       if (err) {
         res.status(500).end("Failed to create new card list for user");
       } else {
