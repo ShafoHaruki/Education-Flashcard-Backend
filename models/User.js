@@ -14,8 +14,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 8
-  },
-  flashcards: [{ type: mongoose.Schema.Types.ObjectId, ref: "Flashcard" }]
+  }
+  // flashcards: [{ type: mongoose.Schema.Types.ObjectId, ref: "Flashcard" }]
 });
 
 userSchema.pre("save", async function(next) {

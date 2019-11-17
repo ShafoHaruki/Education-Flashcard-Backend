@@ -19,8 +19,8 @@ router.get("/", async function(req, res, next) {
   try {
     if (!req.user) {
       res.send(
-        flashcards.map((v, i) => {
-          return { ...v, id: i };
+        flashcards.map((v, index) => {
+          return { ...v, id: index };
         })
       );
     } else {
@@ -48,7 +48,7 @@ router.post("/new", protectedRoute, async (req, res, next) => {
   }
 });
 
-router.delete("/:id", async (req, res, next) => {
+router.delete("/:id", protectedRoute, async (req, res, next) => {
   try {
     const id = req.params.id;
     await Flashcard.findByIdAndDelete(id);
